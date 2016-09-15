@@ -63,8 +63,10 @@ class Combiners implements Multi
                 $time = $input[$tfield] ?? '';
                 $zone = $zfield === null ? null : ($input[$zfield] ?? null);
                 return [
-                    ($this->destination) => new \DateTime("{$date}T{$time}",
-                        !$zfield ? null : new \DateTimeZone($zone))
+                    ($this->destination) => new \DateTime(
+                        "{$date}T{$time}",
+                        !$zfield ? null : new \DateTimeZone($zone)
+                    )
                 ];
             case "prefixed":
                 $prefix = $this->fields[0];
