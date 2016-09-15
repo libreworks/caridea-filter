@@ -23,71 +23,8 @@ namespace Caridea\Filter;
 /**
  * Combines fields into one
  */
-class Combiners implements Multi
+class Combiners
 {
-    /**
-     * @var string - The operation
-     */
-    private $op;
-    /**
-     * @var string - The outbound key
-     */
-    private $destination;
-    /**
-     * @var string[] - The field names
-     */
-    private $fields = [];
-
-    /**
-     * Creates a new Combiners.
-     */
-    protected function __construct(string $op, string $destination, array $fields)
-    {
-        $this->op = $op;
-        $this->destination = $destination;
-        $this->fields = $fields;
-    }
-
-    /**
-     * Combines the values.
-     *
-     * @param array $input The input values
-     * @return array The returned values
-     */
-    public function __invoke(array $input): array
-    {
-        switch ($op) {
-            case "datetime":
-                list($dfield, $tfield, $zfield) = array_pad($this->fields, 3, null);
-                $date = $input[$dfield] ?? '';
-                $time = $input[$tfield] ?? '';
-                $zone = $zfield === null ? null : ($input[$zfield] ?? null);
-                return [
-                    ($this->destination) => new \DateTime(
-                        "{$date}T{$time}",
-                        !$zfield ? null : new \DateTimeZone($zone)
-                    )
-                ];
-            case "prefixed":
-                $prefix = $this->fields[0];
-                $subl = strlen($prefix);
-                $out = [];
-                foreach ($input as $k => $v) {
-                    if (substr($k, 0, $subl) === $prefix) {
-                        $out[substr($k, $subl)] = $v;
-                    }
-                }
-                return [($this->destination) => $out];
-            case "appender":
-                $prefix = $this->fields[0];
-                $subl = strlen($prefix);
-                $out = array_filter($input, function ($k) use ($subl, $prefix) {
-                    return substr($k, 0, $subl) === $prefix;
-                }, ARRAY_FILTER_USE_KEY);
-                return [($this->destination) => $out];
-        }
-    }
-
     /**
      * A combiner that takes any field with a given prefix and adds it to a List
      *
@@ -96,11 +33,25 @@ class Combiners implements Multi
      *
      * @param string $destination The outgoing field name
      * @param string $prefix The prefix to find
-     * @return Combiners The created filter
+     * @return Multi The created filter
      */
-    public static function appender(string $destination, string $prefix): Combiners
+    public static function appender(string $destination, string $prefix): Multi
     {
-        return new self('appender', $destination, [$prefix]);
+        return new class($destination, $prefix) implements Multi {
+            public function __construct($destination, $prefix)
+            {
+                $this->destination = $destination;
+                $this->prefix = $prefix;
+            }
+            public function __invoke(array $input): array
+            {
+                $subl = strlen($this->prefix);
+                $out = array_filter($input, function ($k) use ($subl) {
+                    return substr($k, 0, $subl) === $this->prefix;
+                }, ARRAY_FILTER_USE_KEY);
+                return [($this->destination) => $out];
+            }
+        };
     }
 
     /**
@@ -111,11 +62,28 @@ class Combiners implements Multi
      *
      * @param string $destination The outgoing field name
      * @param string $prefix The prefix to find
-     * @return Combiners The created filter
+     * @return Multi The created filter
      */
-    public static function prefixed(string $destination, string $prefix): Combiners
+    public static function prefixed(string $destination, string $prefix): Multi
     {
-        return new self('prefixed', $destination, [$prefix]);
+        return new class($destination, $prefix) implements Multi {
+            public function __construct($destination, $prefix)
+            {
+                $this->destination = $destination;
+                $this->prefix = $prefix;
+            }
+            public function __invoke(array $input): array
+            {
+                $subl = strlen($this->prefix);
+                $out = [];
+                foreach ($input as $k => $v) {
+                    if (substr($k, 0, $subl) === $this->prefix) {
+                        $out[substr($k, $subl)] = $v;
+                    }
+                }
+                return [($this->destination) => $out];
+            }
+        };
     }
 
     /**
@@ -124,10 +92,30 @@ class Combiners implements Multi
      * @param string $date The field to find date (e.g. `2016-09-15`)
      * @param string $time The field to find time (e.g. `12:04:06`)
      * @param string $timezone The field to find timezone name (e.g. `America/New_York`)
-     * @return Combiners The created filter
+     * @return Multi The created filter
      */
-    public static function datetime(string $destination, string $date, string $time, string $timezone = null): Combiners
+    public static function datetime(string $destination, string $date, string $time, string $timezone = null): Multi
     {
-        return new self('datetime', $destination, [$date, $time, $timezone]);
+        return new class($destination, $date, $time, $timezone) implements Multi {
+            public function __construct($destination, $date, $time, $timezone = null)
+            {
+                $this->destination = $destination;
+                $this->dfield = $date;
+                $this->tfield = $time;
+                $this->zfield = $timezone;
+            }
+            public function __invoke(array $input): array
+            {
+                $date = $input[$this->dfield] ?? '';
+                $time = $input[$this->tfield] ?? '';
+                $zone = $this->zfield === null ? null : ($input[$this->zfield] ?? null);
+                return [
+                    ($this->destination) => new \DateTime(
+                        "{$date}T{$time}",
+                        !$zfield ? null : new \DateTimeZone($zone)
+                    )
+                ];
+            }
+        };
     }
 }

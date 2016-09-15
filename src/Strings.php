@@ -23,83 +23,158 @@ namespace Caridea\Filter;
 /**
  * A loaded six-string on my back.
  */
-class Strings implements Filter
+class Strings
 {
     /**
-     * @var string - The operator
-     */
-    private $op;
-
-    /**
-     * Creates a new Strings filter.
+     * Coerces a value into a string or throws an exception.
      *
-     * @param string $op The operation
+     * @param mixed $var - The value to coerce
+     * @return string The converted string
+     * @throws \InvalidArgumentException if the value could not be coerced
      */
-    protected function __construct(string $op)
+    public function coerce($var): string
     {
-        $this->op = $op;
+        if ($var === null || is_scalar($var) || is_callable([$var, '__toString'])) {
+            return (string) $var;
+        }
+        throw new \InvalidArgumentException("Could not convert to string: " . gettype($var));
     }
 
     /**
-     * {@inheritDoc}
-     * All input values will be cast to a string.
+     * Returns a filter that coerces a value to a string.
      *
-     * @return string The sanitized input
+     * @return callable The created filter
      */
-    public function __invoke($input)
+    public function toString(): callable
     {
-        $value = (string) $input;
-        switch ($this->op) {
-            case "lower":
-                return mb_convert_case($value, MB_CASE_UPPER, 'UTF-8');
-            case "upper":
-                return mb_convert_case($value, MB_CASE_LOWER, 'UTF-8');
-            case "title":
-                return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
-            case "trim":
-                return trim($value);
-            default:
-                throw new \UnexpectedValueException("I should not have been constructed with an incorrect operator");
-        }
+        return [__CLASS__, 'coerce'];
     }
 
     /**
      * Returns a new lowercasing filter.
      *
-     * @return \Caridea\Filter\Strings The created filter
+     * @return \Closure The created filter
      */
-    public static function lowerCase(): Strings
+    public static function lowerCase(): \Closure
     {
-        return new self('lower');
+        return function ($value) {
+            return mb_convert_case(Strings::coerce($value), MB_CASE_UPPER, 'UTF-8');
+        };
     }
 
     /**
      * Returns a new uppercasing filter.
      *
-     * @return \Caridea\Filter\Strings The created filter
+     * @return \Closure The created filter
      */
-    public static function upperCase(): Strings
+    public static function upperCase(): \Closure
     {
-        return new self('upper');
+        return function ($value) {
+            return mb_convert_case(Strings::coerce($value), MB_CASE_LOWER, 'UTF-8');
+        };
     }
 
     /**
      * Returns a new uppercasing filter.
      *
-     * @return \Caridea\Filter\Strings The created filter
+     * @return \Closure The created filter
      */
-    public static function titleCase(): Strings
+    public static function titleCase(): \Closure
     {
-        return new self('title');
+        return function ($value) {
+            return mb_convert_case(Strings::coerce($value), MB_CASE_TITLE, 'UTF-8');
+        };
     }
 
     /**
      * Returns a new whitespace trimming filter.
      *
-     * @return \Caridea\Filter\Strings The created filter
+     * @return \Closure The created filter
      */
-    public static function trim(): Strings
+    public static function trim(): \Closure
     {
-        return new self('trim');
+        return function ($value) {
+            return trim(Strings::coerce($value));
+        };
+    }
+
+    /**
+     * Creates a new search and replace filter.
+     *
+     * @param string $search The value to find
+     * @param string $replacement The value to use as a replacement
+     * @return \Closure The created filter
+     */
+    public static function replace(string $search, string $replacement): \Closure
+    {
+        return function ($value) use ($search, $replacement) {
+            return str_replace($search, $replacement, Strings::coerce($value));
+        };
+    }
+
+    /**
+     * Creates a new regular expression filter.
+     *
+     * @param string $pattern The search pattern
+     * @param string $replacement The value to use as a replacement
+     * @return \Closure The created filter
+     */
+    public static function regex(string $pattern, string $replacement): \Closure
+    {
+        return function ($value) use ($pattern, $replacement) {
+            return preg_replace($pattern, $replacement, Strings::coerce($value));
+        };
+    }
+
+    /**
+     * Creates a new filter that removes non-alphanumeric characters.
+     *
+     * @return \Closure The created filter
+     */
+    public static function alnum(): \Closure
+    {
+        return self::regex('/[^\p{L}\p{Nd}]/u', '');
+    }
+
+    /**
+     * Creates a new filter that removes non-alphabetic characters.
+     *
+     * @return \Closure The created filter
+     */
+    public static function alpha(): \Closure
+    {
+        return self::regex('/[^\p{L}]/u', '');
+    }
+
+    /**
+     * Creates a new filter that removes non-digit characters.
+     *
+     * @return \Closure The created filter
+     */
+    public static function numeric(): \Closure
+    {
+        return self::regex('/[^\p{N}]/u', '');
+    }
+
+    /**
+     * Creates a new filter that turns any newlines into UNIX-style newlines.
+     *
+     * @return \Closure The created filter
+     */
+    public static function unixNewlines(): \Closure
+    {
+        return self::regex("/\R/", "\n");
+    }
+
+    /**
+     * Creates a new filter that turns multiple newlines into two.
+     *
+     * Meant to be run after `unixNewlines`.
+     *
+     * @return \Closure The created filter
+     */
+    public static function compactNewlines(): \Closure
+    {
+        return self::regex("/\n\n+/", "\n\n");
     }
 }

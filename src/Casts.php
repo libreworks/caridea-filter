@@ -23,83 +23,68 @@ namespace Caridea\Filter;
 /**
  * Turn that mush into muscle!
  */
-class Casts implements Filter
+class Casts
 {
-    /**
-     * @var int - The operator
-     */
-    private $op;
-
     private static $truthy = ['yes', 'y', 'on', '1', 'true', 't'];
-
-    /**
-     * Creates a new Casts filter.
-     *
-     * @param int $op The operator
-     */
-    protected function __construct(int $op)
-    {
-        $this->op = $op;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return mixed The sanitized input
-     */
-    public function __invoke($input)
-    {
-        switch ($this->op) {
-            case T_BOOL_CAST:
-                return is_bool($input) ? $input :
-                    (is_scalar($input) ? in_array(trim((string) $input), self::$truthy, true) : false);
-            case T_INT_CAST:
-                return (int) $input;
-            case T_DOUBLE_CAST:
-                return (float) $input;
-            case T_STRING_CAST:
-                return (string) $input;
-            default:
-                throw new \UnexpectedValueException("I should not have been constructed with an incorrect operator");
-        }
-    }
 
     /**
      * Creates a filter that casts values to booleans.
      *
-     * @return \Caridea\Filter\Casts The created filter
+     * @return \Closure The created filter
      */
-    public static function booleans(): Casts
+    public static function toBoolean(): \Closure
     {
-        return new self(T_BOOL_CAST);
+        return function ($value) {
+            return is_bool($value) ? $value :
+                in_array(trim(Strings::coerce($value)), Casts::$truthy, true);
+        };
     }
 
     /**
      * Creates a filter that casts values to integers.
      *
-     * @return \Caridea\Filter\Casts The created filter
+     * @return \Closure The created filter
      */
-    public static function integers(): Casts
+    public static function toInteger(): \Closure
     {
-        return new self(T_INT_CAST);
+        return function ($value) {
+            return (int)(is_scalar($value) ? $value : Strings::coerce($value));
+        };
     }
 
     /**
      * Creates a filter that casts values to floats.
      *
-     * @return \Caridea\Filter\Casts The created filter
+     * @return \Closure The created filter
      */
-    public static function floats(): Casts
+    public static function toFloat(): \Closure
     {
-        return new self(T_DOUBLE_CAST);
+        return function ($value) {
+            return (float)(is_scalar($value) ? $value : Strings::coerce($value));
+        };
     }
 
     /**
-     * Creates a filter that casts values to strings.
+     * Creates a filter that casts values to arrays.
      *
-     * @return \Caridea\Filter\Casts The created filter
+     * @return \Closure The created filter
      */
-    public static function strings(): Casts
+    public static function toArray(): \Closure
     {
-        return new self(T_STRING_CAST);
+        return function ($value) {
+            return (array) $value;
+        };
+    }
+
+    /**
+     * Creates a filter that casts values to a default if empty.
+     *
+     * @return \Closure The created filter
+     */
+    public static function toDefault($default = null): \Closure
+    {
+        return function ($value) use ($default) {
+            return $value === null || $value === '' ? $default : $value;
+        };
     }
 }
