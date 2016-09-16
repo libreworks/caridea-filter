@@ -36,7 +36,9 @@ class Casts
     {
         return function ($value) {
             return is_bool($value) ? $value :
-                in_array(trim(Strings::coerce($value)), Casts::$truthy, true);
+                (is_scalar($value) ?
+                    in_array(strtolower(trim(Strings::coerce($value))), Casts::$truthy, true)
+                    : false);
         };
     }
 

@@ -44,7 +44,7 @@ class Chain implements \IteratorAggregate, \Countable
      * @param Registry $registry The builder
      * @param bool $required Whether these filters run even if value is missing
      */
-    public function __construct(Registry $registry, bool $required)
+    public function __construct(Registry $registry, bool $required = false)
     {
         $this->registry = $registry;
         $this->required = $required;
@@ -113,8 +113,7 @@ class Chain implements \IteratorAggregate, \Countable
      */
     public function then(string $name, ...$args): self
     {
-        $clone = clone $this;
-        $clone->filters[] = $this->registry->factory($name, $args);
-        return $clone;
+        $this->filters[] = $this->registry->factory($name, $args);
+        return $this;
     }
 }

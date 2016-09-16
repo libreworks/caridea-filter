@@ -45,7 +45,7 @@ class Strings
      *
      * @return callable The created filter
      */
-    public function toString(): callable
+    public static function toString(): callable
     {
         return [__CLASS__, 'coerce'];
     }
@@ -58,7 +58,7 @@ class Strings
     public static function lowerCase(): \Closure
     {
         return function ($value) {
-            return mb_convert_case(Strings::coerce($value), MB_CASE_UPPER, 'UTF-8');
+            return mb_convert_case(Strings::coerce($value), MB_CASE_LOWER, 'UTF-8');
         };
     }
 
@@ -70,7 +70,7 @@ class Strings
     public static function upperCase(): \Closure
     {
         return function ($value) {
-            return mb_convert_case(Strings::coerce($value), MB_CASE_LOWER, 'UTF-8');
+            return mb_convert_case(Strings::coerce($value), MB_CASE_UPPER, 'UTF-8');
         };
     }
 

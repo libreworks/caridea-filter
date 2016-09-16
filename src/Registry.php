@@ -46,6 +46,11 @@ class Registry
         'numeric' => ['Caridea\Filter\Strings', 'numeric'],
         'nl' => ['Caridea\Filter\Strings', 'unixNewlines'],
         'compactnl' => ['Caridea\Filter\Strings', 'compactNewlines'],
+        'bool' => ['Caridea\Filter\Casts', 'toBoolean'],
+        'int' => ['Caridea\Filter\Casts', 'toInteger'],
+        'float' => ['Caridea\Filter\Casts', 'toFloat'],
+        'array' => ['Caridea\Filter\Casts', 'toArray'],
+        'default' => ['Caridea\Filter\Casts', 'toDefault'],
     ];
 
     /**
@@ -53,7 +58,7 @@ class Registry
      */
     public function __construct()
     {
-        $this->register(self::$defaultDefinitions);
+        $this->definitions = array_merge([], self::$defaultDefinitions);
     }
 
     /**
@@ -74,6 +79,9 @@ class Registry
     public function register(array $definitions): self
     {
         foreach ($definitions as $name => $callback) {
+            if (!is_callable($callback)) {
+                throw new \InvalidArgumentException('Values passed to register must be callable');
+            }
             $this->definitions[$name] = $callback;
         }
         return $this;
@@ -83,12 +91,12 @@ class Registry
      * Constructs a filter.
      *
      * @param string $name The name of the filter
-     * @param mixed $args Any filter arguments
+     * @param array $args Any filter arguments
      * @return callable The filter
      * @throws \InvalidArgumentException if the filter name is not registered
      * @throws \UnexpectedValueException if the factory returns a non-callable value
      */
-    public function factory(string $name, ...$args): callable
+    public function factory(string $name, array $args): callable
     {
         if (!array_key_exists($name, $this->definitions)) {
             throw new \InvalidArgumentException("No filter registered with name: $name");
@@ -99,5 +107,15 @@ class Registry
             throw new \UnexpectedValueException('Definitions must return callable');
         }
         return $filter;
+    }
+
+    /**
+     * Creates a new Builder using this Repository.
+     *
+     * @return \Caridea\Filter\Builder The builder
+     */
+    public function builder(): Builder
+    {
+        return new Builder($this);
     }
 }

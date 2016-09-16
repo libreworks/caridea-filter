@@ -31,17 +31,20 @@ class Filter
     protected $chains = [];
 
     /**
-     * Creates a new Filter (but you're probably better off using `Builder`)
+     * Creates a new Filter (but you're probably better off using `Builder`).
+     * 
+     * Any `Chain`s supplied to this method will be cloned. Modifications to the
+     * originals will not appear once a `Filter` is constructed.
      *
      * @param array<string,Chain> $chains - The filters keyed by field
      */
     public function __construct(array $chains)
     {
         foreach ($chains as $k => $f) {
-            if (!($f instanceof Filters)) {
-                throw new \InvalidArgumentException("Must be an instance of Filters");
+            if (!($f instanceof Chain)) {
+                throw new \InvalidArgumentException("Must be an instance of Chain");
             }
-            $this->chains[$k] = $f;
+            $this->chains[$k] = clone $f;
         }
     }
 

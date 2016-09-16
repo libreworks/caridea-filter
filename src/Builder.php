@@ -52,7 +52,7 @@ class Builder
      */
     public function field(string $name): Chain
     {
-        $f = new Chain($registry);
+        $f = new Chain($this->registry);
         $this->chains[$name] = $f;
         return $f;
     }
@@ -65,7 +65,7 @@ class Builder
      */
     public function always(string $name): Chain
     {
-        $f = new Chain($registry, true);
+        $f = new Chain($this->registry, true);
         $this->chains[$name] = $f;
         return $f;
     }
