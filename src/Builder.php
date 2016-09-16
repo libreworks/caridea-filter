@@ -21,23 +21,32 @@ declare(strict_types=1);
 namespace Caridea\Filter;
 
 /**
- * Creates a Filters object.
+ * We Built this Filter on Rock and Roll.
  */
 class Builder
 {
     /**
-     * @var Registry - The filter registry
+     * @var \Caridea\Filter\Registry - The filter registry
      */
     protected $registry;
     /**
-     * @var array<string,Chain> - The chains by field name
+     * @var array<string,\Caridea\Filter\Chain> - The chains by field name
      */
     protected $chains = [];
+    /**
+     *
+     * @var \Caridea\Filter\Reducer[]
+     */
+    protected $reducers = [];
+    /**
+     * @var \Caridea\Filter\Chain|null
+     */
+    protected $otherwiseChain;
 
     /**
      * Creates a new Builder.
      *
-     * @param Registry $registry The filter registry
+     * @param \Caridea\Filter\Registry $registry The filter registry
      */
     public function __construct(Registry $registry)
     {
@@ -48,7 +57,7 @@ class Builder
      * Creates a new Chain for a field
      *
      * @param string $name The field name
-     * @return Chain the chain
+     * @return \Caridea\Filter\Chain the chain
      */
     public function field(string $name): Chain
     {
@@ -61,7 +70,7 @@ class Builder
      * Creates a new *required* Chain for a field.
      *
      * @param string $name The field name
-     * @return Chain the chain
+     * @return \Caridea\Filter\Chain the chain
      */
     public function always(string $name): Chain
     {
@@ -71,14 +80,43 @@ class Builder
     }
 
     /**
+     * Adds a multiple filter to the builder.
+     *
+     * @param \Caridea\Filter\Reducer $multi
+     * @return self provides a fluent interface
+     */
+    public function reducer(Reducer $multi): self
+    {
+        $this->reducers[] = $multi;
+        return $this;
+    }
+
+    /**
+     * Adds a chain that runs for any non-mentioned fields.
+     *
+     * @param string $name The filter name
+     * @param mixed $args The filter arguments
+     * @return \Caridea\Filter\Chain the chain
+     */
+    public function otherwise(string $name, ...$args): Chain
+    {
+        $chain = new Chain($this->registry, false);
+        $this->otherwiseChain = $chain;
+        return $chain->then($name, ...$args);
+    }
+
+    /**
      * Builds a new Filter.
      *
-     * @return Filter the created Filter.
+     * @return \Caridea\Filter\Filter the created Filter.
      */
     public function build(): Filter
     {
-        return new Filter(array_filter($this->chains, function ($v) {
-            return !$v->isEmpty();
-        }));
+        $reducers = $this->otherwiseChain === null ? $this->reducers :
+            array_merge(
+                $this->reducers,
+                [new Otherwise($this->otherwiseChain, $this->chains)]
+            );
+        return new Filter($this->chains, $reducers);
     }
 }

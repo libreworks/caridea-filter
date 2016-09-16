@@ -21,7 +21,9 @@ declare(strict_types=1);
 namespace Caridea\Filter;
 
 /**
- * Hold several functions together.
+ * Unchained, yeah you hit the ground running.
+ *
+ * This class holds several callable objects and invokes them in insert order.
  */
 class Chain implements \IteratorAggregate, \Countable
 {
@@ -41,7 +43,7 @@ class Chain implements \IteratorAggregate, \Countable
     /**
      * Creates a new Chain
      *
-     * @param Registry $registry The builder
+     * @param \Caridea\Filter\Registry $registry The builder
      * @param bool $required Whether these filters run even if value is missing
      */
     public function __construct(Registry $registry, bool $required = false)
@@ -106,14 +108,34 @@ class Chain implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Returns a copy of this chain with the defined filter appended.
+     * Returns this chain with the defined filter appended.
      *
      * @param string $name The filter name
      * @param mixed $args Any remaining arguments for the filter
+     * @return self provides a fluent interface
      */
     public function then(string $name, ...$args): self
     {
         $this->filters[] = $this->registry->factory($name, $args);
+        return $this;
+    }
+
+    /**
+     * Returns this chain with the defined *each* filter appended.
+     *
+     * If the filter receives an array, it will run for every entry, and if it
+     * receives anything else, it will be run once.
+     *
+     * @param string $name The filter name
+     * @param mixed $args Any remaining arguments for the filter
+     * @return self provides a fluent interface
+     */
+    public function each(string $name, ...$args): self
+    {
+        $f = $this->registry->factory($name, $args);
+        $this->filters[] = function ($input) use ($f) {
+            return is_array($input) ? array_map($f, $input) : $f($input);
+        };
         return $this;
     }
 }

@@ -17,7 +17,10 @@ class StringsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('123.4', Strings::coerce(123.4));
         $this->assertEquals('foo', Strings::coerce("foo"));
         $this->assertEquals('hello', Strings::coerce(new class {
-            public function __toString() { return 'hello'; }
+            public function __toString()
+            {
+                return 'hello';
+            }
         }));
     }
 
@@ -104,6 +107,18 @@ class StringsTest extends \PHPUnit_Framework_TestCase
         $f = Strings::regex("/foo/i", 'bar');
         $this->assertEquals('barbar', $f('Foobar'));
         $this->assertEquals('bar bar bar', $f('FOO FoO foo'));
+    }
+
+    /**
+     * @covers Caridea\Filter\Strings::cut
+     */
+    public function testCut()
+    {
+        $f = Strings::cut(5);
+        $this->assertEquals('ABCDE', $f('ABCDEFGH'));
+        $this->assertEquals('ABCDE', $f('ABCDE'));
+        $this->assertEquals('ABCD', $f('ABCD'));
+        $this->assertEquals('', $f(''));
     }
 
     /**

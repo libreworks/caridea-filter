@@ -21,24 +21,31 @@ declare(strict_types=1);
 namespace Caridea\Filter;
 
 /**
- * A set of filter chains for fields on an array.
+ * That's why I say hey man, nice shot.
+ *
+ * This class contains several chains of functions which sanitize values.
  */
-class Filter
+class Filter implements Reducer
 {
     /**
-     * @var array<string,Chain> - The filters keyed by field
+     * @var array<string,\Caridea\Filter\Chain> - The filters keyed by field
      */
     protected $chains = [];
+    /**
+     * @var array<\Caridea\Filter\Reducer> - The
+     */
+    protected $reducers = [];
 
     /**
      * Creates a new Filter (but you're probably better off using `Builder`).
-     * 
+     *
      * Any `Chain`s supplied to this method will be cloned. Modifications to the
      * originals will not appear once a `Filter` is constructed.
      *
-     * @param array<string,Chain> $chains - The filters keyed by field
+     * @param array<string,\Caridea\Filter\Chain> $chains - The filters keyed by field
+     * @param array<\Caridea\Filter\Reducer> $reducers - Any Reducer filters to include
      */
-    public function __construct(array $chains)
+    public function __construct(array $chains, array $reducers = [])
     {
         foreach ($chains as $k => $f) {
             if (!($f instanceof Chain)) {
@@ -46,10 +53,19 @@ class Filter
             }
             $this->chains[$k] = clone $f;
         }
+        foreach ($reducers as $k => $f) {
+            if (!($f instanceof Reducer)) {
+                throw new \InvalidArgumentException("Must be an instance of Reducer");
+            }
+            $this->reducers[$k] = $f;
+        }
     }
 
     /**
      * Runs the array filter.
+     *
+     * Chains are run in the order in which they were inserted. Reducers are run
+     * afterward and operate on the *original* values, not the filtered ones.
      *
      * @param array<string,mixed> $values The values to filter
      * @return array The filtered array
@@ -61,6 +77,9 @@ class Filter
             if (array_key_exists($field, $values) || $chain->isRequired()) {
                 $out[$field] = $chain($values[$field] ?? null);
             }
+        }
+        foreach ($this->reducers as $multi) {
+            $out = array_merge($out, $multi($values));
         }
         return $out;
     }

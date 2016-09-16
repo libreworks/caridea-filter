@@ -32,7 +32,7 @@ class Strings
      * @return string The converted string
      * @throws \InvalidArgumentException if the value could not be coerced
      */
-    public function coerce($var): string
+    public static function coerce($var): string
     {
         if ($var === null || is_scalar($var) || is_callable([$var, '__toString'])) {
             return (string) $var;
@@ -95,6 +95,19 @@ class Strings
     {
         return function ($value) {
             return trim(Strings::coerce($value));
+        };
+    }
+
+    /**
+     * Returns a new substring filter.
+     *
+     * @param int $length The maximum string length
+     * @return \Closure The created filter
+     */
+    public static function cut(int $length): \Closure
+    {
+        return function ($value) use ($length) {
+            return substr(Strings::coerce($value), 0, $length);
         };
     }
 

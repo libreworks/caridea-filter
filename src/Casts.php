@@ -69,13 +69,11 @@ class Casts
     /**
      * Creates a filter that casts values to arrays.
      *
-     * @return \Closure The created filter
+     * @return callable The created filter
      */
-    public static function toArray(): \Closure
+    public static function toArray(): callable
     {
-        return function ($value) {
-            return (array) $value;
-        };
+        return [Arrays::class, 'coerce'];
     }
 
     /**

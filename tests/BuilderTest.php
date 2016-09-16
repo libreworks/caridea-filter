@@ -9,7 +9,9 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers Caridea\Filter\Builder::field
      * @covers Caridea\Filter\Builder::always
+     * @covers Caridea\Filter\Builder::reducer
      * @covers Caridea\Filter\Builder::build
+     * @covers Caridea\Filter\Builder::otherwise
      * @covers Caridea\Filter\Builder::__construct
      */
     public function testBuilder()
@@ -26,8 +28,11 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
         $c2->then('string')->then('default', 0);
         $c3 = $builder->field('sex');
         $this->assertInstanceOf(Chain::class, $c3);
+        $builder->reducer(Combiners::appender('foo', 'bar'));
+        $builder->otherwise('trim');
         $filter = $builder->build();
         $this->assertInstanceOf(Filter::class, $filter);
-        $this->assertAttributeCount(2, 'chains', $filter);
+        $this->assertAttributeCount(3, 'chains', $filter);
+        $this->assertAttributeCount(2, 'reducers', $filter);
     }
 }

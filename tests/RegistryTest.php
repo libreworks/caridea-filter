@@ -76,7 +76,9 @@ class RegistryTest extends \PHPUnit_Framework_TestCase
      */
     public function testFactoryUncallable()
     {
-        $this->object->register(['foobar' => function () {return 'hi';}]);
+        $this->object->register(['foobar' => function () {
+            return 'hi';
+        }]);
         $this->object->factory('foobar', []);
     }
 

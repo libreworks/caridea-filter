@@ -21,7 +21,9 @@ declare(strict_types=1);
 namespace Caridea\Filter;
 
 /**
- * Combines fields into one
+ * Come Together Right Now.
+ *
+ * This class provides some Reducers.
  */
 class Combiners
 {
@@ -33,11 +35,11 @@ class Combiners
      *
      * @param string $destination The outgoing field name
      * @param string $prefix The prefix to find
-     * @return Multi The created filter
+     * @return \Caridea\Filter\Reducer The created filter
      */
-    public static function appender(string $destination, string $prefix): Multi
+    public static function appender(string $destination, string $prefix): Reducer
     {
-        return new class($destination, $prefix) implements Multi {
+        return new class($destination, $prefix) implements Reducer {
             public function __construct($destination, $prefix)
             {
                 $this->destination = $destination;
@@ -49,7 +51,7 @@ class Combiners
                 $out = array_filter($input, function ($k) use ($subl) {
                     return substr($k, 0, $subl) === $this->prefix;
                 }, ARRAY_FILTER_USE_KEY);
-                return [($this->destination) => $out];
+                return $out ? [($this->destination) => array_values($out)] : [];
             }
         };
     }
@@ -62,11 +64,11 @@ class Combiners
      *
      * @param string $destination The outgoing field name
      * @param string $prefix The prefix to find
-     * @return Multi The created filter
+     * @return \Caridea\Filter\Reducer The created filter
      */
-    public static function prefixed(string $destination, string $prefix): Multi
+    public static function prefixed(string $destination, string $prefix): Reducer
     {
-        return new class($destination, $prefix) implements Multi {
+        return new class($destination, $prefix) implements Reducer {
             public function __construct($destination, $prefix)
             {
                 $this->destination = $destination;
@@ -81,7 +83,7 @@ class Combiners
                         $out[substr($k, $subl)] = $v;
                     }
                 }
-                return [($this->destination) => $out];
+                return $out ? [($this->destination) => $out] : [];
             }
         };
     }
@@ -90,13 +92,13 @@ class Combiners
      * Creates a combiner that combines datetime values.
      *
      * @param string $date The field to find date (e.g. `2016-09-15`)
-     * @param string $time The field to find time (e.g. `12:04:06`)
+     * @param string $time The field to find time (e.g. `T12:04:06`)
      * @param string $timezone The field to find timezone name (e.g. `America/New_York`)
-     * @return Multi The created filter
+     * @return \Caridea\Filter\Reducer The created filter
      */
-    public static function datetime(string $destination, string $date, string $time, string $timezone = null): Multi
+    public static function datetime(string $destination, string $date, string $time, string $timezone = null): Reducer
     {
-        return new class($destination, $date, $time, $timezone) implements Multi {
+        return new class($destination, $date, $time, $timezone) implements Reducer {
             public function __construct($destination, $date, $time, $timezone = null)
             {
                 $this->destination = $destination;
@@ -109,12 +111,12 @@ class Combiners
                 $date = $input[$this->dfield] ?? '';
                 $time = $input[$this->tfield] ?? '';
                 $zone = $this->zfield === null ? null : ($input[$this->zfield] ?? null);
-                return [
+                return $date || $time ? [
                     ($this->destination) => new \DateTime(
-                        "{$date}T{$time}",
-                        !$zfield ? null : new \DateTimeZone($zone)
+                        "{$date}{$time}",
+                        !$this->zfield ? null : new \DateTimeZone($zone)
                     )
-                ];
+                ] : [];
             }
         };
     }

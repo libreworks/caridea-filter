@@ -22,16 +22,24 @@ namespace Caridea\Filter;
 
 /**
  * Values check in but they don't check out!
+ *
+ * Reducers are meant to alter multiple fields. While the name infers that array
+ * fields are reduced, a Reducer *could* in fact add additional fields.
+ *
+ * The real purpose is to squash several values into a different type. For
+ * example:
+ *
+ * - A datetime filter may take the date value from one key and the time value
+ *   from another
+ * - An address object could take several values out of the input and return a
+ *   single address
+ * - Maybe you have a phone number in several fields as country code, area code,
+ *   local, extension
  */
-interface Multi
+interface Reducer
 {
     /**
-     * Sanitizes an input value, allowing the filter to combine values.
-     *
-     * For example, a datetime filter may take the date value from one key and
-     * the time value from another. An address object could take several values
-     * out of the input and return a single address. Maybe you have a phone
-     * number in several fields as country code, area code, local, extension.
+     * Sanitizes multiple input values, potentially combining/reducing fields.
      *
      * @param array<string,mixed> $input The input values to sanitize
      * @return array<string,mixed> The sanitized values

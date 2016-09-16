@@ -28,7 +28,7 @@ class Registry
     /**
      * @var array<string,callable> Associative array of definition name to function callback
      */
-    protected $definitions = [];
+    protected $definitions;
 
     /**
      * @var array<string,callable> Associative array of definition name to function callback
@@ -51,6 +51,9 @@ class Registry
         'float' => ['Caridea\Filter\Casts', 'toFloat'],
         'array' => ['Caridea\Filter\Casts', 'toArray'],
         'default' => ['Caridea\Filter\Casts', 'toDefault'],
+        'split' => ['Caridea\Filter\Arrays', 'split'],
+        'explode' => ['Caridea\Filter\Arrays', 'explode'],
+        'join' => ['Caridea\Filter\Arrays', 'join'],
     ];
 
     /**

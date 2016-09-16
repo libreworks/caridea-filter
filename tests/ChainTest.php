@@ -15,7 +15,7 @@ class ChainTest extends \PHPUnit_Framework_TestCase
         $chain = new Chain($registry, true);
         $this->assertSame($this, $chain($this));
     }
-    
+
     /**
      * @covers Caridea\Filter\Chain::__invoke
      */
@@ -68,5 +68,19 @@ class ChainTest extends \PHPUnit_Framework_TestCase
         $registry = new Registry();
         $chain = new Chain($registry, true);
         $this->assertInstanceOf(Chain::class, $chain->then('trim'));
+    }
+
+    /**
+     * @covers Caridea\Filter\Chain::each
+     */
+    public function testEach()
+    {
+        $registry = new Registry();
+        $chain = new Chain($registry, true);
+        $this->assertInstanceOf(Chain::class, $chain->each('trim'));
+        $input = ['   ', null, ' something ', 'good ', ' goes', "\nhere\n"];
+        $output = $chain($input);
+        $this->assertEquals(['', '', 'something', 'good', 'goes', 'here'], $output);
+        $this->assertEquals('foo', $chain('  foo  '));
     }
 }

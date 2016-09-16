@@ -17,14 +17,40 @@ class FilterTest extends \PHPUnit_Framework_TestCase
         $c1->then('trim')->then('titlecase');
         $c2 = new Chain($registry, true);
         $c2->then('string')->then('default', 0);
+        $r = $this->createMock(Reducer::class);
+        $r->expects($this->once())->method('__invoke')->willReturn(['hello' => 'world']);
         $filter = new Filter([
             'name' => $c1,
             'age' => $c2,
-        ]);
+        ], [$r]);
         $this->assertAttributeCount(2, 'chains', $filter);
+        $this->assertAttributeCount(1, 'reducers', $filter);
         $input = ['name' => 'jonathan hawk  '];
         $output = $filter($input);
-        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0], $output);
+        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0, 'hello' => 'world'], $output);
+    }
+
+    /**
+     * @covers Caridea\Filter\Filter::__invoke
+     * @covers Caridea\Filter\Filter::__construct
+     */
+    public function test__invokeOtherwise()
+    {
+        $registry = new Registry();
+        $c1 = new Chain($registry, false);
+        $c1->then('trim')->then('titlecase');
+        $c2 = new Chain($registry, true);
+        $c2->then('string')->then('default', 0);
+        $r = $this->createMock(Reducer::class);
+        $r->expects($this->once())->method('__invoke')->willReturn(['hello' => 'world']);
+        $chains = ['name' => $c1, 'age' => $c2];
+        $o = new Otherwise((new Chain($registry, false))->then('trim'), $chains);
+        $filter = new Filter($chains, [$r, $o]);
+        $this->assertAttributeCount(2, 'chains', $filter);
+        $this->assertAttributeCount(2, 'reducers', $filter);
+        $input = ['name' => 'jonathan hawk  ', 'foo' => '   bar   '];
+        $output = $filter($input);
+        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0, 'hello' => 'world', 'foo' => 'bar'], $output);
     }
 
     /**
@@ -35,5 +61,15 @@ class FilterTest extends \PHPUnit_Framework_TestCase
     public function test__construct()
     {
         new Filter(['foo' => 'bar']);
+    }
+
+    /**
+     * @covers Caridea\Filter\Filter::__construct
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Must be an instance of Reducer
+     */
+    public function test__construct2()
+    {
+        new Filter([], ['foobar']);
     }
 }
