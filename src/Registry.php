@@ -41,6 +41,7 @@ class Registry
         'string' => ['Caridea\Filter\Strings', 'toString'],
         'replace' => ['Caridea\Filter\Strings', 'replace'],
         'regex' => ['Caridea\Filter\Strings', 'regex'],
+        'cut' => ['Caridea\Filter\Strings', 'cut'],
         'alnum' => ['Caridea\Filter\Strings', 'alnum'],
         'alpha' => ['Caridea\Filter\Strings', 'alpha'],
         'numeric' => ['Caridea\Filter\Strings', 'numeric'],
@@ -54,6 +55,7 @@ class Registry
         'split' => ['Caridea\Filter\Arrays', 'split'],
         'explode' => ['Caridea\Filter\Arrays', 'explode'],
         'join' => ['Caridea\Filter\Arrays', 'join'],
+        'slice' => ['Caridea\Filter\Arrays', 'slice'],
     ];
 
     /**
