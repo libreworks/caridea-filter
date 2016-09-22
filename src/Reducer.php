@@ -41,6 +41,9 @@ interface Reducer
     /**
      * Sanitizes multiple input values, potentially combining/reducing fields.
      *
+     * When implementing this class, make sure to include any untouched fields
+     * in the output array.
+     *
      * @param array<string,mixed> $input The input values to sanitize
      * @return array<string,mixed> The sanitized values
      */

@@ -24,8 +24,7 @@ class CombinersTest extends \PHPUnit_Framework_TestCase
     {
         $f = Combiners::appender('choices', 'choices-');
         $input = ['cheers' => 'where everybody knows your name'];
-        $output = [];
-        $this->assertEquals($output, $f($input));
+        $this->assertEquals($input, $f($input));
     }
 
     /**
@@ -46,8 +45,7 @@ class CombinersTest extends \PHPUnit_Framework_TestCase
     {
         $f = Combiners::prefixed('address', 'address-');
         $input = ['poc-street' => '123 Main St'];
-        $output = [];
-        $this->assertEquals($output, $f($input));
+        $this->assertEquals($input, $f($input));
     }
 
     /**
@@ -83,7 +81,6 @@ class CombinersTest extends \PHPUnit_Framework_TestCase
     {
         $f = Combiners::datetime('start', 'start-date', 'start-time');
         $input = ['end-date' => '2016-09-16', 'end-time' => 'T14:34:12'];
-        $output = [];
-        $this->assertEquals($output, $f($input));
+        $this->assertEquals($input, $f($input));
     }
 }

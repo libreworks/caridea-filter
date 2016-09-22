@@ -33,6 +33,7 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
         $filter = $builder->build();
         $this->assertInstanceOf(Filter::class, $filter);
         $this->assertAttributeCount(3, 'chains', $filter);
-        $this->assertAttributeCount(2, 'reducers', $filter);
+        $this->assertAttributeCount(1, 'reducers', $filter);
+        $this->assertAttributeInstanceOf(Chain::class, 'otherwise', $filter);
     }
 }

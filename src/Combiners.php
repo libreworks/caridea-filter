@@ -34,24 +34,33 @@ class Combiners
      * outgoing field `value` with an array that contains 3 entries.
      *
      * @param string $destination The outgoing field name
-     * @param string $prefix The prefix to find
+     * @param string $prefix The prefix to find, uses the destination by default
      * @return \Caridea\Filter\Reducer The created filter
      */
-    public static function appender(string $destination, string $prefix): Reducer
+    public static function appender(string $destination, string $prefix = null): Reducer
     {
         return new class($destination, $prefix) implements Reducer {
-            public function __construct($destination, $prefix)
+            public function __construct($destination, $prefix = null)
             {
                 $this->destination = $destination;
-                $this->prefix = $prefix;
+                $this->prefix = $prefix ?? $destination;
             }
             public function __invoke(array $input): array
             {
                 $subl = strlen($this->prefix);
-                $out = array_filter($input, function ($k) use ($subl) {
-                    return substr($k, 0, $subl) === $this->prefix;
-                }, ARRAY_FILTER_USE_KEY);
-                return $out ? [($this->destination) => array_values($out)] : [];
+                $out = [];
+                $mine = [];
+                foreach ($input as $k => $v) {
+                    if (substr($k, 0, $subl) === $this->prefix) {
+                        $mine[] = $v;
+                    } else {
+                        $out[$k] = $v;
+                    }
+                }
+                if ($mine) {
+                    $out[$this->destination] = $mine;
+                }
+                return $out;
             }
         };
     }
@@ -63,27 +72,33 @@ class Combiners
      * outgoing field `address` with `street` and `city` keys.
      *
      * @param string $destination The outgoing field name
-     * @param string $prefix The prefix to find
+     * @param string $prefix The prefix to find, uses the destination by default
      * @return \Caridea\Filter\Reducer The created filter
      */
-    public static function prefixed(string $destination, string $prefix): Reducer
+    public static function prefixed(string $destination, string $prefix = null): Reducer
     {
         return new class($destination, $prefix) implements Reducer {
             public function __construct($destination, $prefix)
             {
                 $this->destination = $destination;
-                $this->prefix = $prefix;
+                $this->prefix = $prefix ?? $destination;
             }
             public function __invoke(array $input): array
             {
                 $subl = strlen($this->prefix);
                 $out = [];
+                $mine = [];
                 foreach ($input as $k => $v) {
                     if (substr($k, 0, $subl) === $this->prefix) {
-                        $out[substr($k, $subl)] = $v;
+                        $mine[substr($k, $subl)] = $v;
+                    } else {
+                        $out[$k] = $v;
                     }
                 }
-                return $out ? [($this->destination) => $out] : [];
+                if ($mine) {
+                    $out[$this->destination] = $mine;
+                }
+                return $out;
             }
         };
     }
@@ -111,12 +126,16 @@ class Combiners
                 $date = $input[$this->dfield] ?? '';
                 $time = $input[$this->tfield] ?? '';
                 $zone = $this->zfield === null ? null : ($input[$this->zfield] ?? null);
-                return $date || $time ? [
-                    ($this->destination) => new \DateTime(
+                $out = array_filter($input, function ($k) {
+                    return $k !== $this->dfield && $k !== $this->tfield && $k !== $this->zfield;
+                }, ARRAY_FILTER_USE_KEY);
+                if ($date || $time) {
+                    $out[$this->destination] = new \DateTime(
                         "{$date}{$time}",
                         !$this->zfield ? null : new \DateTimeZone($zone)
-                    )
-                ] : [];
+                    );
+                }
+                return $out;
             }
         };
     }

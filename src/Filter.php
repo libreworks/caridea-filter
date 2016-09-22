@@ -32,9 +32,13 @@ class Filter implements Reducer
      */
     protected $chains = [];
     /**
-     * @var array<\Caridea\Filter\Reducer> - The
+     * @var array<\Caridea\Filter\Reducer> - The reducers
      */
     protected $reducers = [];
+    /**
+     * @var \Caridea\Filter\Chain - The chain to run if field is unregistered
+     */
+    protected $otherwise;
 
     /**
      * Creates a new Filter (but you're probably better off using `Builder`).
@@ -44,8 +48,9 @@ class Filter implements Reducer
      *
      * @param array<string,\Caridea\Filter\Chain> $chains - The filters keyed by field
      * @param array<\Caridea\Filter\Reducer> $reducers - Any Reducer filters to include
+     * @param \Caridea\Filter\Chain $otherwise - The chain to run for missing fields
      */
-    public function __construct(array $chains, array $reducers = [])
+    public function __construct(array $chains, array $reducers = [], Chain $otherwise = null)
     {
         foreach ($chains as $k => $f) {
             if (!($f instanceof Chain)) {
@@ -59,13 +64,15 @@ class Filter implements Reducer
             }
             $this->reducers[$k] = $f;
         }
+        $this->otherwise = $otherwise;
     }
 
     /**
      * Runs the array filter.
      *
      * Chains are run in the order in which they were inserted. Reducers are run
-     * afterward and operate on the *original* values, not the filtered ones.
+     * afterward and operate on the filtered values. Each reducer is run
+     * sequentially and operates on the values returned from the previous.
      *
      * @param array<string,mixed> $values The values to filter
      * @return array The filtered array
@@ -78,8 +85,14 @@ class Filter implements Reducer
                 $out[$field] = $chain($values[$field] ?? null);
             }
         }
+        if ($this->otherwise !== null) {
+            $f = $this->otherwise;
+            foreach (array_diff_key($values, $this->chains) as $k => $v) {
+                $out[$k] = $f($v);
+            }
+        }
         foreach ($this->reducers as $multi) {
-            $out = array_merge($out, $multi($values));
+            $out = $multi($out);
         }
         return $out;
     }

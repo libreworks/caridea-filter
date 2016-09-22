@@ -112,11 +112,6 @@ class Builder
      */
     public function build(): Filter
     {
-        $reducers = $this->otherwiseChain === null ? $this->reducers :
-            array_merge(
-                $this->reducers,
-                [new Otherwise($this->otherwiseChain, $this->chains)]
-            );
-        return new Filter($this->chains, $reducers);
+        return new Filter($this->chains, $this->reducers, $this->otherwiseChain);
     }
 }

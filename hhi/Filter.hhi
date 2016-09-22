@@ -6,8 +6,9 @@ class Filter implements Reducer
 {
     protected array<string,Chain> $chains = [];
     protected array<Reducer> $reducers = [];
+    protected ?Chain $otherwise;
 
-    public function __construct(array<string,Chain> $chains, array<Reducer> $reducers = [])
+    public function __construct(array<string,Chain> $chains, array<Reducer> $reducers = [], ?Chain $otherwise = null)
     {
     }
 

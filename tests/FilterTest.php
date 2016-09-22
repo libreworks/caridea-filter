@@ -18,7 +18,7 @@ class FilterTest extends \PHPUnit_Framework_TestCase
         $c2 = new Chain($registry, true);
         $c2->then('string')->then('default', 0);
         $r = $this->createMock(Reducer::class);
-        $r->expects($this->once())->method('__invoke')->willReturn(['hello' => 'world']);
+        $r->expects($this->once())->method('__invoke')->willReturnArgument(0);
         $filter = new Filter([
             'name' => $c1,
             'age' => $c2,
@@ -27,7 +27,7 @@ class FilterTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeCount(1, 'reducers', $filter);
         $input = ['name' => 'jonathan hawk  '];
         $output = $filter($input);
-        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0, 'hello' => 'world'], $output);
+        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0], $output);
     }
 
     /**
@@ -42,15 +42,14 @@ class FilterTest extends \PHPUnit_Framework_TestCase
         $c2 = new Chain($registry, true);
         $c2->then('string')->then('default', 0);
         $r = $this->createMock(Reducer::class);
-        $r->expects($this->once())->method('__invoke')->willReturn(['hello' => 'world']);
+        $r->expects($this->once())->method('__invoke')->willReturnArgument(0);
         $chains = ['name' => $c1, 'age' => $c2];
-        $o = new Otherwise((new Chain($registry, false))->then('trim'), $chains);
-        $filter = new Filter($chains, [$r, $o]);
+        $filter = new Filter($chains, [$r], (new Chain($registry, false))->then('trim'));
         $this->assertAttributeCount(2, 'chains', $filter);
-        $this->assertAttributeCount(2, 'reducers', $filter);
+        $this->assertAttributeCount(1, 'reducers', $filter);
         $input = ['name' => 'jonathan hawk  ', 'foo' => '   bar   '];
         $output = $filter($input);
-        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0, 'hello' => 'world', 'foo' => 'bar'], $output);
+        $this->assertEquals(['name' => 'Jonathan Hawk', 'age' => 0, 'foo' => 'bar'], $output);
     }
 
     /**
