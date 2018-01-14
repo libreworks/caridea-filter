@@ -9,8 +9,7 @@ This is its value sanitation library.
 [![Build Status](https://travis-ci.org/libreworks/caridea-filter.svg)](https://travis-ci.org/libreworks/caridea-filter)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/libreworks/caridea-filter/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/libreworks/caridea-filter/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/libreworks/caridea-filter/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/libreworks/caridea-filter/?branch=master)
-
-We've also included `.hhi` files for the Hack typechecker.
+[![Documentation Status](http://readthedocs.org/projects/caridea-filter/badge/?version=latest)](http://caridea-filter.readthedocs.io/en/latest/?badge=latest)
 
 ## Installation
 
@@ -20,13 +19,18 @@ You can install this library using Composer:
 $ composer require caridea/filter
 ```
 
-* The master branch (version 2.x) of this project requires PHP 7.0 and the `mbstring` extension.
+* The master branch (version 3.x) of this project requires PHP 7.1 and the `mbstring` extension.
+* Version 2.x of this project requires PHP 7.0 and the `mbstring` extension.
 
 ## Compliance
 
 Releases of this library will conform to [Semantic Versioning](http://semver.org).
 
 Our code is intended to comply with [PSR-1](http://www.php-fig.org/psr/psr-1/), [PSR-2](http://www.php-fig.org/psr/psr-2/), and [PSR-4](http://www.php-fig.org/psr/psr-4/). If you find any issues related to standards compliance, please send a pull request!
+
+## Documentation
+
+* Head over to [Read the Docs](http://caridea-filter.readthedocs.io/en/latest/)
 
 ## Examples
 
