@@ -70,8 +70,8 @@ class Registry
      * Registers rule definitions.
      *
      * ```php
-     * $builder = new \Caridea\Filter\Builder();
-     * $builder->register([
+     * $registry = new \Caridea\Filter\Registry();
+     * $registry->register([
      *     'gzip' => ['My\Gzip', 'compressor'],
      *     'password' => function($hash){return new Hasher($hash);},
      *     'something' => 'my_function_that_returns_a_closure'

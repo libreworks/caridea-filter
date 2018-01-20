@@ -106,6 +106,7 @@ class Combiners
     /**
      * Creates a combiner that combines datetime values.
      *
+     * @param string $destination The outgoing field name
      * @param string $date The field to find date (e.g. `2016-09-15`)
      * @param string $time The field to find time (e.g. `T12:04:06`)
      * @param string $timezone The field to find timezone name (e.g. `America/New_York`)
